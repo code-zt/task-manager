@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"task_manager/internal/config"
 	"task_manager/internal/models"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var cfg = config.LoadConfig()
 
 func NewTaskRepository(db *mongo.Collection) *TaskRepository {
 	return &TaskRepository{db: db}
@@ -20,7 +23,7 @@ type TaskRepository struct {
 }
 
 func (t *TaskRepository) CreateTask(task *models.Task, ctx context.Context) (*mongo.InsertOneResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	task.CreatedAt = time.Now()
 	result, err := t.db.InsertOne(ctx, task)
@@ -31,7 +34,7 @@ func (t *TaskRepository) CreateTask(task *models.Task, ctx context.Context) (*mo
 }
 
 func (t *TaskRepository) GetTasks(user *models.User, ctx context.Context) ([]models.Task, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	var tasks []models.Task
 	cursor, err := t.db.Find(ctx, bson.M{"user_id": user.ID})
@@ -46,7 +49,7 @@ func (t *TaskRepository) GetTasks(user *models.User, ctx context.Context) ([]mod
 }
 
 func (t *TaskRepository) GetTask(taskID primitive.ObjectID, user *models.User, ctx context.Context) (*models.Task, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	var task models.Task
 	err := t.db.FindOne(ctx, bson.M{"_id": taskID, "user_id": user.ID}).Decode(&task)
@@ -60,7 +63,7 @@ func (t *TaskRepository) GetTask(taskID primitive.ObjectID, user *models.User, c
 }
 
 func (t *TaskRepository) UpdateTask(task *models.Task, ctx context.Context) (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	result, err := t.db.UpdateOne(ctx, bson.M{"_id": task.ID, "user_id": task.UserID}, bson.M{"$set": task})
 	if err != nil {
@@ -70,7 +73,7 @@ func (t *TaskRepository) UpdateTask(task *models.Task, ctx context.Context) (*mo
 }
 
 func (t *TaskRepository) DeleteTask(userID, taskID primitive.ObjectID, ctx context.Context) (*mongo.DeleteResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	result, err := t.db.DeleteOne(ctx, bson.M{"_id": taskID, "user_id": userID})
 	if err != nil {

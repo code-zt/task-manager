@@ -21,7 +21,7 @@ func NewUserRepository(db *mongo.Collection) *UserRepository {
 }
 
 func (u *UserRepository) CreateUser(user *models.User, ctx context.Context) (*mongo.InsertOneResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	user.CreatedAt = time.Now()
 	result, err := u.db.InsertOne(ctx, user)
@@ -32,7 +32,7 @@ func (u *UserRepository) CreateUser(user *models.User, ctx context.Context) (*mo
 }
 
 func (u *UserRepository) FindUserByEmail(email string, ctx context.Context) (*models.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	var user models.User
 	err := u.db.FindOne(ctx, bson.M{"email": email}).Decode(&user)
@@ -61,7 +61,7 @@ func (u *UserRepository) Auth(email, password string, ctx context.Context) (*mod
 }
 
 func (u *UserRepository) FindUserByID(id string, ctx context.Context) (*models.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimeout)
 	defer cancel()
 	var user models.User
 	err := u.db.FindOne(ctx, bson.M{"_id": id}).Decode(&user)

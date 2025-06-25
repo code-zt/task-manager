@@ -2,40 +2,26 @@ package main
 
 import (
 	"context"
-	"log"
 	"task_manager/internal/config"
 	"task_manager/internal/database"
 	"task_manager/internal/handlers"
 	"task_manager/internal/middleware"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var cfg *config.Config
+var cfg *config.Config = config.LoadConfig()
 var client, err = database.Connect()
 
 var userCollection *mongo.Collection = client.Database.Collection("users")
 var taskCollection *mongo.Collection = client.Database.Collection("tasks")
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 	defer cancel()
 
-	defer func() {
-
-		if err = client.Disconnect(ctx); err != nil {
-			log.Fatalf("Error disconnecting from database: %v", err)
-		} else {
-			log.Println("Disconnected from database")
-		}
-	}()
-
-	cfg, err = config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}
+	defer client.Disconnect(ctx)
 
 	app := fiber.New()
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"task_manager/internal/config"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,15 +14,11 @@ type MongoClient struct {
 	Database *mongo.Database
 }
 
-var cfg *config.Config
+var cfg *config.Config = config.LoadConfig()
 
 func Connect() (*MongoClient, error) {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Ошибка загрузки конфига: %v", err)
-	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://"+cfg.DatabaseHost+":"+cfg.DatabasePort))
 	if err != nil {
@@ -40,5 +35,10 @@ func Connect() (*MongoClient, error) {
 	}, nil
 }
 func (mc *MongoClient) Disconnect(ctx context.Context) error {
-	return mc.Client.Disconnect(ctx)
+	err := mc.Client.Disconnect(ctx)
+	if err != nil {
+		log.Fatalf("Ошибка отключения от базы данных: %v", err)
+	}
+	log.Println("Отключение от базы данных успешно")
+	return nil
 }

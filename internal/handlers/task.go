@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"task_manager/internal/models"
 	"task_manager/internal/repositories"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -15,7 +14,7 @@ import (
 
 func GetTasks(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 		user := c.Locals("user").(*models.User)
 		r := repositories.NewTaskRepository(collection)
@@ -29,7 +28,7 @@ func GetTasks(collection *mongo.Collection) fiber.Handler {
 
 func CreateTask(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 		user := c.Locals("user").(*models.User)
 		task := new(models.Task)
@@ -52,7 +51,7 @@ func CreateTask(collection *mongo.Collection) fiber.Handler {
 
 func EditTask(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 
 		user := c.Locals("user").(*models.User)
@@ -77,7 +76,7 @@ func EditTask(collection *mongo.Collection) fiber.Handler {
 
 func DeleteTask(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 		userID := (c.Locals("user").(*models.User)).ID
 

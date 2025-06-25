@@ -3,7 +3,9 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/joho/godotenv"
 )
 
@@ -12,19 +14,20 @@ type Config struct {
 	DatabaseName                              string
 	JWTSecretKey                              string
 	DatabaseHost                              string
-	UseHttps                                  bool
 	AppPort                                   string
 	AccessTokenLifetime, RefreshTokenLifetime int
+	UseHttps                                  bool
+	ContextTimeout                            time.Duration
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig() *Config {
 	envFile := os.Getenv("ENV_FILE")
 	if envFile == "" {
 		envFile = ".env"
 	}
 	err := godotenv.Load(envFile)
 	if err != nil {
-		return nil, err
+		log.Errorf("Error loading .env file: %v", err)
 	}
 
 	accessTokenLifetime := os.Getenv("ACCESS_TOKEN_LIFETIME")
@@ -35,6 +38,7 @@ func LoadConfig() (*Config, error) {
 	dbName := os.Getenv("DB_NAME")
 	appPort := os.Getenv("APP_PORT")
 	useHttps := os.Getenv("USE_HTTPS")
+	contextTimeout := os.Getenv("CONTEXT_TIMEOUT")
 
 	if jwtSecretKey == "" {
 		jwtSecretKey = "secret_key"
@@ -54,16 +58,16 @@ func LoadConfig() (*Config, error) {
 	if appPort == "" {
 		appPort = "8080"
 	}
+	if contextTimeout == "" {
+		contextTimeout = "10"
+	}
 
 	useHttpsBool := parseBool(useHttps)
-	accessTokenLifetimeInt, err := strconv.Atoi(accessTokenLifetime)
-	if err != nil {
-		return nil, err
-	}
-	refreshTokenLifetimeInt, err := strconv.Atoi(refreshTokenLifetime)
-	if err != nil {
-		return nil, err
-	}
+
+	accessTokenLifetimeInt := parseInt(accessTokenLifetime)
+	refreshTokenLifetimeInt := parseInt(refreshTokenLifetime)
+
+	contextTimeoutInt := parseInt(contextTimeout)
 	return &Config{
 		DatabasePort:         dbPort,
 		JWTSecretKey:         jwtSecretKey,
@@ -73,7 +77,8 @@ func LoadConfig() (*Config, error) {
 		AppPort:              appPort,
 		AccessTokenLifetime:  accessTokenLifetimeInt,
 		RefreshTokenLifetime: refreshTokenLifetimeInt,
-	}, nil
+		ContextTimeout:       time.Duration(contextTimeoutInt) * time.Second,
+	}
 
 }
 
@@ -84,4 +89,12 @@ func parseBool(s string) bool {
 		return false
 	}
 
+}
+func parseInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		log.Errorf("Error parsing: %v", err)
+		return 0
+	}
+	return i
 }

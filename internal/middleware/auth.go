@@ -3,17 +3,19 @@ package middleware
 import (
 	"context"
 	"strings"
+	"task_manager/internal/config"
 	"task_manager/internal/repositories"
 	"task_manager/internal/utils"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+var cfg *config.Config = config.LoadConfig()
+
 func AuthMiddleware(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 
 		refreshToken := c.Cookies("refreshToken")

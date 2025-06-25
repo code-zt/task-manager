@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var cfg, _ = config.LoadConfig()
+var cfg = config.LoadConfig()
 
 var (
 	accessTokenLifetime  = 15 * time.Minute
@@ -23,7 +23,7 @@ var (
 
 func Register(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 
 		var user models.User
@@ -87,7 +87,7 @@ func Register(collection *mongo.Collection) fiber.Handler {
 
 func Login(collection *mongo.Collection) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ContextTimeout)
 		defer cancel()
 
 		r := repositories.NewUserRepository(collection)
