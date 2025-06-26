@@ -15,6 +15,7 @@ type Config struct {
 	JWTSecretKey                              string
 	DatabaseHost                              string
 	AppPort                                   string
+	EncryptCookieKey                          string
 	AccessTokenLifetime, RefreshTokenLifetime int
 	UseHttps                                  bool
 	ContextTimeout                            time.Duration
@@ -39,6 +40,7 @@ func LoadConfig() *Config {
 	appPort := os.Getenv("APP_PORT")
 	useHttps := os.Getenv("USE_HTTPS")
 	contextTimeout := os.Getenv("CONTEXT_TIMEOUT")
+	encryptCookieKey := os.Getenv("ENCRYPT_COOKIE_KEY")
 
 	if jwtSecretKey == "" {
 		jwtSecretKey = "secret_key"
@@ -60,6 +62,9 @@ func LoadConfig() *Config {
 	}
 	if contextTimeout == "" {
 		contextTimeout = "10"
+	}
+	if encryptCookieKey == "" {
+		encryptCookieKey = "secret_encrypt_key"
 	}
 
 	useHttpsBool := parseBool(useHttps)

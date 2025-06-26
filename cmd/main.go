@@ -7,7 +7,10 @@ import (
 	"task_manager/internal/handlers"
 	"task_manager/internal/middleware"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -23,7 +26,19 @@ func main() {
 
 	defer client.Disconnect(ctx)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, accessToken, refreshToken",
+		AllowMethods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+	}))
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key: cfg.EncryptCookieKey,
+	}))
 
 	app.Use(middleware.RequestLogger(), middleware.ErrorLogger())
 	api := app.Group("/api")
